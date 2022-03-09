@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.26.0 (40646f47)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: owncloud
+  name: owncloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: owncloud
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.26.0 (40646f47)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: owncloud
+    spec:
+      containers:
+        - env:
+            - name: OWNCLOUD_ADMIN_PASSWORD
+              value: admin
+            - name: OWNCLOUD_ADMIN_USERNAME
+              value: admin
+            - name: OWNCLOUD_DB_HOST
+              value: mariadb
+            - name: OWNCLOUD_DB_NAME
+              value: owncloud
+            - name: OWNCLOUD_DB_PASSWORD
+              value: owncloud
+            - name: OWNCLOUD_DB_TYPE
+              value: mysql
+            - name: OWNCLOUD_DB_USERNAME
+              value: owncloud
+            - name: OWNCLOUD_DOMAIN
+              value: localhost:9090
+            - name: OWNCLOUD_MYSQL_UTF8MB4
+              value: "true"
+            - name: OWNCLOUD_REDIS_ENABLED
+              value: "true"
+            - name: OWNCLOUD_REDIS_HOST
+              value: redis
+          image: owncloud/server:10.9
+          livenessProbe:
+            exec:
+              command:
+                - /usr/bin/healthcheck
+            failureThreshold: 5
+            periodSeconds: 30
+            timeoutSeconds: 10
+          name: owncloud-server
+          ports:
+            - containerPort: 9090
+          resources: {}
+          volumeMounts:
+            - mountPath: /srv/downloads
+              name: files
+      restartPolicy: Always
+      volumes:
+        - name: files
+          persistentVolumeClaim:
+            claimName: qbittorrent-claim0
+status: {}
